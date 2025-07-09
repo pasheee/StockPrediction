@@ -1,10 +1,6 @@
 import requests
-<<<<<<< HEAD
 
 def get_api_data_news(time_from: str, time_to: str, limit: str = '1000', tickers: str = "CRYPTO:BTC", API_KEY: str = "N7JPSQ1APAY1A586") -> dict:
-=======
-def get_api_data_news(time_from, time_to, limit = '1000', tickers = "CRYPTO:BTC", API_KEY="N7JPSQ1APAY1A586"):
->>>>>>> e0ef03d01465245b4572120030e69e609b8399de
     """
     Fetches news sentiment data from the Alpha Vantage API for specified tickers and time range.
     Args:
