@@ -1,1 +1,4 @@
 /.stock
+/.stockpricevenv
+graphsParsing/debug notebooks/data
+config.py
