@@ -4,3 +4,4 @@ graphsParsing/debug notebooks/data
 config.py
 /newsParsing/__pycache__
 /newsParsing/functions/__pycache__
+/newsParsing/database
