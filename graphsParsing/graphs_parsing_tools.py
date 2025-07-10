@@ -1,13 +1,17 @@
 import requests
 import pandas as pd
+import numpy as np
+
 import time
 from datetime import datetime, timedelta
+from finta import TA
 import json
 import os
 
 class BinanceDataCollector:
     def __init__(self):
         self.base_url = "https://api.binance.com/api/v3"
+        self.verbose = False
         self.session = requests.Session()
         
     def get_klines(self, symbol, interval, start_time, end_time, limit=1000):
@@ -47,7 +51,8 @@ class BinanceDataCollector:
             interval: интервал
             days_back: количество дней назад (по умолчанию 730 = 2 года)
         """
-        print(f"Начинаем сбор данных для {symbol} с интервалом {interval}")
+        if self.verbose:
+            print(f"Начинаем сбор данных для {symbol} с интервалом {interval}")
         
         end_time = datetime.now()
         start_time = end_time - timedelta(days=days_back)
@@ -63,13 +68,15 @@ class BinanceDataCollector:
         while current_start < end_timestamp:
             current_end = min(current_start + (1000 * interval_ms), end_timestamp)
             
-            print(f"Загружаем данные с {datetime.fromtimestamp(current_start/1000)} по {datetime.fromtimestamp(current_end/1000)}")
+            if self.verbose:
+                print(f"Загружаем данные с {datetime.fromtimestamp(current_start/1000)} по {datetime.fromtimestamp(current_end/1000)}")
             
             klines = self.get_klines(symbol, interval, current_start, current_end)
             
             if klines:
                 all_data.extend(klines)
-                print(f"Получено {len(klines)} свечей")
+                if self.verbose:
+                    print(f"Получено {len(klines)} свечей")
             else:
                 print("Ошибка при получении данных")
                 break
@@ -130,6 +137,8 @@ class BinanceDataCollector:
         
         df = df.sort_values('open_time').reset_index(drop=True)
         
+        self.df = df
+
         return df
     
     def save_data(self, df, filename):
@@ -137,7 +146,9 @@ class BinanceDataCollector:
         os.makedirs('data', exist_ok=True)
         filepath = f'data/{filename}'
         df.to_csv(filepath, index=False)
-        print(f"Данные сохранены в {filepath}")
+        self.df = df
+        if self.verbose:
+            print(f"Данные сохранены в {filepath}")
     
     def load_data(self, filename):
         """Загружает данные из CSV файла"""
@@ -146,10 +157,68 @@ class BinanceDataCollector:
             df = pd.read_csv(filepath)
             df['open_time'] = pd.to_datetime(df['open_time'])
             df['close_time'] = pd.to_datetime(df['close_time'])
+            self.df = df 
             return df
         else:
             print(f"Файл {filepath} не найден")
             return None
+
+    def add_all_indicators_finta(self):
+        """
+        Добавляет все популярные индикаторы используя finta lib
+        Возвращает DataFrame с добавленными индикаторами
+        """
+        result_df = self.df.copy()
+        
+        # Скользящие средние
+        result_df['SMA_20'] = TA.SMA(result_df, 20) # За 20 последний периодов
+        result_df['EMA_12'] = TA.EMA(result_df, 12) # За 12 последний периодов
+        
+        # Momentum индикаторы
+        result_df['RSI'] = TA.RSI(result_df)
+        result_df['MACD'] = TA.MACD(result_df)['MACD']
+        result_df['MACD_signal'] = TA.MACD(result_df)['SIGNAL']
+        result_df['Stoch_K'] = TA.STOCH(result_df)
+        result_df['Williams_R'] = TA.WILLIAMS(result_df)
+        
+        # Volatility индикаторы
+        result_df['ATR'] = TA.ATR(result_df)
+        bb = TA.BBANDS(result_df)
+        result_df['BB_upper'] = bb['BB_UPPER']
+        result_df['BB_middle'] = bb['BB_MIDDLE']
+        result_df['BB_lower'] = bb['BB_LOWER']
+        
+        # Volume индикаторы
+        result_df['OBV'] = TA.OBV(result_df)
+        
+        return result_df
+    
+    def fix_data(self):
+        """ Фиксит большинство NaN значений в данных после добавления индикаторов"""
+
+        if self.df is not None:
+            data = self.df.copy()
+
+            if 'OBV' in data.columns:
+                ids = np.arange(data.shape[0])[data['OBV'].isna() == True]
+                prev_ids = ids - 1
+                prev_ids[0] = 0
+                next_ids = ids + 1
+
+                avg = (data['OBV'].iloc[prev_ids].values + data['OBV'].iloc[next_ids].values) / 2
+                data.loc[ids, 'OBV'] = avg
+            
+            data.bfill(inplace=True)
+            na_mx = max(data.isna().sum())
+
+            final_data = data.iloc[na_mx + 1:].bfill() # Некоторые метрики начинаются с NaN поэтому тупо кат делаю <- костыль ^_^
+
+            self.save_data(final_data, 'TA_data_filled_NaN.csv')
+            if self.verbose:
+                print(" Fixed и сохранены в файл TA_data_filled_NaN.csv")
+
+            return final_data
+
 
 def main():
     collector = BinanceDataCollector()

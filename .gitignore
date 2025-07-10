@@ -1,7 +1,8 @@
 /.stock
 /.stockpricevenv
-graphsParsing/debug notebooks/data
+graphsParsing/debug/data
 config.py
 /newsParsing/__pycache__
 /newsParsing/functions/__pycache__
 /newsParsing/database
+__pycache__
