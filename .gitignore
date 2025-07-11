@@ -6,3 +6,5 @@ config.py
 /newsParsing/functions/__pycache__
 /newsParsing/database
 __pycache__
+/train_news_dataset/
+/tmp.ipynb
