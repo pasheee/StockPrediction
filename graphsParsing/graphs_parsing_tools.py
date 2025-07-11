@@ -141,10 +141,11 @@ class BinanceDataCollector:
 
         return df
     
-    def save_data(self, df, filename):
+    def save_data(self, df, filename, dirname='train_graph_dataset'):
         """Сохраняет данные в CSV файл"""
-        os.makedirs('data', exist_ok=True)
-        filepath = f'data/{filename}'
+        os.makedirs(dirname, exist_ok=True)
+        filepath = os.path.join(dirname, filename)
+
         df.to_csv(filepath, index=False)
         self.df = df
         if self.verbose:
