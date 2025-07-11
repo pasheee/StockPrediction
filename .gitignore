@@ -9,3 +9,4 @@ __pycache__
 /train_news_dataset/
 /tmp.ipynb
 /result_news_data.csv
+/train_graph_dataset
