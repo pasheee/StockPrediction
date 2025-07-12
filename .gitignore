@@ -11,3 +11,4 @@ __pycache__
 /result_news_data.csv
 /train_graph_dataset
 /result_train_data
+/final_dataset
