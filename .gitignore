@@ -1,9 +1,7 @@
 /.stock
-/.stockpricevenv
+stockpricevenv
 graphsParsing/debug/data
 config.py
-/newsParsing/__pycache__
-/newsParsing/functions/__pycache__
 /newsParsing/database
 __pycache__
 /train_news_dataset/
@@ -12,3 +10,4 @@ __pycache__
 /train_graph_dataset
 /result_train_data
 /final_dataset
+data
