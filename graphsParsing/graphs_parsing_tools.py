@@ -225,8 +225,8 @@ def main():
     collector = BinanceDataCollector()
     
     symbol = 'BTCUSDT'  
-    interval = '5m'     
-    days_back = 365     # Days back 
+    interval = '1m'     
+    days_back = 365     # Days back
     
     print("Начинаем сбор данных...")
     raw_data = collector.collect_historical_data(symbol, interval, days_back)
@@ -257,8 +257,8 @@ def collect_multiple_coins():
     collector = BinanceDataCollector()
     
     symbols = ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'DOTUSDT']
-    interval = '5m'  
-    days_back = 365  
+    interval = '1m'  
+    days_back = 730  
     
     for symbol in symbols:
         print(f"\n{'='*50}")
@@ -272,9 +272,9 @@ def collect_multiple_coins():
             filename = f'{symbol}_{interval}_{days_back}days.csv'
             collector.save_data(df, filename)
             
-            print(f"✅ Данные для {symbol} сохранены: {len(df)} записей")
+            print(f"Данные для {symbol} сохранены: {len(df)} записей")
         else:
-            print(f"❌ Ошибка при сборе данных для {symbol}")
+            print(f"Ошибка при сборе данных для {symbol}")
         
         time.sleep(1)
 
